@@ -1,79 +1,117 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="utf-8"/>
-    <title>Kendo UI Snippet</title>
 
-    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.3.1017/styles/kendo.common.min.css"/>
-    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.3.1017/styles/kendo.rtl.min.css"/>
-    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.3.1017/styles/kendo.silver.min.css"/>
-    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.3.1017/styles/kendo.mobile.all.min.css"/>
+<head>
+    <style>html { font-size: 14px; font-family: Arial, Helvetica, sans-serif; }</style>
+    <title>Search Box in Toolbar for Kendo Grid</title>
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.3.1017/styles/kendo.common.min.css" />
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.3.1017/styles/kendo.rtl.min.css" />
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.3.1017/styles/kendo.silver.min.css" />
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.3.1017/styles/kendo.mobile.all.min.css" />
 
     <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
     <script src="https://kendo.cdn.telerik.com/2018.3.1017/js/kendo.all.min.js"></script>
-</head>
-<body>
-  
-    <div id="app"></div>
 
-    <script id="index" type="text/x-kendo-template">
-        Hello <span data-bind="text: foo"></span>
-        <button data-bind="click: buttonClick">Click me to call view model code</button>
-        <a href="#" data-bind="click: goToView2">Go to view 2</a>
+</head>
+
+<body>
+
+    <script src="items.js"></script>
+
+    <script id="template" type="text/x-kendo-template">
+    	<label class="search-label" for="searchBox">Search:</label>
+   		<input type="search" id="searchBox" class="k-textbox" style="width: 250px"/>
+  		<input type="button" id="btnSearch" class="k-button" value="Search"/>
+  		<input type="button" id="btnReset" class="k-button" value="Reset"/>
     </script>
+
+    <div id="grid"></div>
+
 
     <script>
-        // models
-        var viewModel = kendo.observable({
-          foo: "World!",
-
-          init: function() {
-            console.log("view init", this.foo);
+    $(document).ready(function () {
+        $("#grid").kendoGrid({
+          //Added a template to the toolbar
+          toolbar: [
+            { template: kendo.template($("#template").html()) }
+          ],
+          dataSource: {
+            data: items
           },
-
-          show: function() {
-            console.log("view show", this.foo);
-          },
-
-          buttonClick: function() {
-            alert("button clicked");
-          },
-
-          goToView2: function(e) {
-            router.navigate("/detail");
-            e.preventDefault();
-          }
+          sortable: true,
+          columns: [{
+            template: "<div class='customer-name'>#: Id #</div>",
+            field: "Id",
+            title: "Id"
+          }, {
+            field: "Name",
+            title: "Name"
+          }, {
+            field: "Category",
+            title: "Category"
+          }, {
+            field: "Stock",
+            title: "Stock"
+          }, {
+            field: "Price",
+            title: "Price"
+          }]
         });
 
+        //Searching the Grid by the value of the textbox
+        $("#btnSearch").click(function () {
+          var searchValue = $('#searchBox').val();
 
-        // views, layouts
-        var layout = new kendo.Layout("<header>Header</header><section id='content'></section><footer>Footer</footer>");
-
-        var index = new kendo.View("index", { model: viewModel, init: viewModel.init.bind(viewModel), show: viewModel.show.bind(viewModel) });
-
-        var detail = new kendo.View("<span>Detail - press your browser back button to navigate back.</span>");
-
-
-        // routing
-        var router = new kendo.Router();
-
-        router.bind("init", function() {
-            layout.render($("#app"));
+          //Setting the filter of the Grid
+          $("#grid").data("kendoGrid").dataSource.filter({
+            logic  : "or",
+            filters: [
+              {
+                field   : "Id",
+                operator: "contains",
+                value   : searchValue
+              },
+              {
+                field   : "Name",
+                operator: "contains",
+                value   : searchValue
+              },
+              {
+                field   : "Category",
+                operator: "contains",
+                value   : searchValue
+              },
+              {
+                field   : "Stock",
+                operator: "contains",
+                value   : searchValue
+              },
+              {
+                field   : "Price",
+                operator: "contains",
+                value   : searchValue
+              }
+            ]
+          });
         });
 
-        router.route("/", function() {
-            layout.showIn("#content", index);
+        //Clearing the filter
+        $("#btnReset").click(function () {   
+          $("#grid").data("kendoGrid").dataSource.filter({});     
         });
 
-        router.route("/detail", function() {
-            layout.showIn("#content", detail);
-        });
-
-        $(function() {
-            router.start();
-        });
-
+      });
     </script>
 
+    <style type="text/css">
+      .customer-name {
+        display: inline-block;
+        vertical-align: middle;
+        line-height: 32px;
+        padding-left: 3px;
+      }
+    </style>
+
 </body>
+
 </html>
