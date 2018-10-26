@@ -1,117 +1,187 @@
+
 <!DOCTYPE html>
 <html>
-
 <head>
     <style>html { font-size: 14px; font-family: Arial, Helvetica, sans-serif; }</style>
-    <title>Search Box in Toolbar for Kendo Grid</title>
-    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.3.1017/styles/kendo.common.min.css" />
-    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.3.1017/styles/kendo.rtl.min.css" />
-    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.3.1017/styles/kendo.silver.min.css" />
-    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.3.1017/styles/kendo.mobile.all.min.css" />
+    <title></title>
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.3.1017/styles/kendo.common-material.min.css" />
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.3.1017/styles/kendo.material.min.css" />
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.3.1017/styles/kendo.material.mobile.min.css" />
 
-    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2018.3.1017/js/jquery.min.js"></script>
     <script src="https://kendo.cdn.telerik.com/2018.3.1017/js/kendo.all.min.js"></script>
+    
 
 </head>
-
 <body>
-
     <script src="items.js"></script>
+<div id="example">
 
-    <script id="template" type="text/x-kendo-template">
-    	<label class="search-label" for="searchBox">Search:</label>
-   		<input type="search" id="searchBox" class="k-textbox" style="width: 250px"/>
-  		<input type="button" id="btnSearch" class="k-button" value="Search"/>
-  		<input type="button" id="btnReset" class="k-button" value="Reset"/>
+    <div class="demo-section k-content wide">
+        <label class="search-label" for="searchBox">Search:</label>
+        <input type="search" id="searchBox" class="k-textbox" style="width: 250px"/>
+        <div style="float: right;">
+          <label>Cart:</label>
+          <a class="k-button k-cart-button">0</a>
+        </div>
+        
+        <div id="listView"></div>
+    </div>
+
+    <script type="text/x-kendo-tmpl" id="template">
+        <div class="product-view k-widget">
+            <dl>
+                <dt>ID</dt>
+                <dd>#:Id#</dd>
+                <dt>Name</dt>
+                <dd>#:Name#</dd>
+                <dt>Category</dt>
+                <dd>#:Category#</dd>
+                <dt>Stock</dt>
+                <dd>#:Stock#</dd>
+                <dt>Price</dt>
+                <dd>#:kendo.toString(Price, "c")#</dd>
+            </dl>
+            <div class="edit-buttons">
+                <a class="k-button k-edit-button"><span class="k-icon k-i-add"></span></a>
+            </div>
+        </div>
     </script>
-
-    <div id="grid"></div>
-
 
     <script>
-    $(document).ready(function () {
-        $("#grid").kendoGrid({
-          //Added a template to the toolbar
-          toolbar: [
-            { template: kendo.template($("#template").html()) }
-          ],
-          dataSource: {
-            data: items
-          },
-          sortable: true,
-          columns: [{
-            template: "<div class='customer-name'>#: Id #</div>",
-            field: "Id",
-            title: "Id"
-          }, {
-            field: "Name",
-            title: "Name"
-          }, {
-            field: "Category",
-            title: "Category"
-          }, {
-            field: "Stock",
-            title: "Stock"
-          }, {
-            field: "Price",
-            title: "Price"
-          }]
-        });
+        $(document).ready(function () {
+            var counter = 0;
+            var dataSource = new kendo.data.DataSource({
+                data: items
+            });
 
-        //Searching the Grid by the value of the textbox
-        $("#btnSearch").click(function () {
-          var searchValue = $('#searchBox').val();
+            var listView = $("#listView").kendoListView({
+                dataSource: dataSource,
+                selectable: "multiple",
+                template: kendo.template($("#template").html())
+            });
 
-          //Setting the filter of the Grid
-          $("#grid").data("kendoGrid").dataSource.filter({
-            logic  : "or",
-            filters: [
-              {
-                field   : "Id",
-                operator: "contains",
-                value   : searchValue
-              },
-              {
-                field   : "Name",
-                operator: "contains",
-                value   : searchValue
-              },
-              {
-                field   : "Category",
-                operator: "contains",
-                value   : searchValue
-              },
-              {
-                field   : "Stock",
-                operator: "contains",
-                value   : searchValue
-              },
-              {
-                field   : "Price",
-                operator: "contains",
-                value   : searchValue
-              }
-            ]
+            //Searching the Grid by the value of the textbox
+          $("#searchBox").on("keyup", function (e) {
+            var searchValue = $('#searchBox').val();
+
+            //Setting the filter of the Grid
+            $("#listView").data("kendoListView").dataSource.filter({
+              logic  : "or",
+              filters: [
+                {
+                  field   : "Id",
+                  operator: "contains",
+                  value   : searchValue
+                },
+                {
+                  field   : "Name",
+                  operator: "contains",
+                  value   : searchValue
+                },
+                {
+                  field   : "Category",
+                  operator: "contains",
+                  value   : searchValue
+                }
+              ]
+            });
           });
-        });
 
-        //Clearing the filter
-        $("#btnReset").click(function () {   
-          $("#grid").data("kendoGrid").dataSource.filter({});     
+            $(".k-edit-button").click(function(e) {
+                counter ++;
+                $(".k-cart-button").text(counter);
+            });
         });
-
-      });
     </script>
 
-    <style type="text/css">
-      .customer-name {
-        display: inline-block;
-        vertical-align: middle;
-        line-height: 32px;
-        padding-left: 3px;
-      }
+    <style>
+        .product-view
+        {
+            float: left;
+            width: 100%;
+            height: 290px;
+            box-sizing: border-box;
+            border-top: 0;
+            position: relative;
+        }
+        .product-view:nth-child(even) {
+            border-left-width: 0;
+        }
+        .product-view dl
+        {
+            margin: 10px 10px 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        .product-view dt, dd
+        {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            line-height: 24px;
+            font-size: 18px;
+        }
+        .product-view dt
+        {
+            font-size: 11px;
+            height: 16px;
+            line-height: 16px;
+            text-transform: uppercase;
+            opacity: 0.5;
+        }
+
+        .product-view dd
+        {
+            height: 30px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+
+        }
+
+        .product-view dd .k-widget,
+        .product-view dd .k-textbox {
+            font-size: 14px;
+        }
+        #example .k-listview
+        {
+            border-width: 1px 0 0;
+            padding: 0;
+            overflow: hidden;
+            min-height: 298px;
+        }
+        .edit-buttons
+        {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: right;
+            padding: 5px;
+            background-color: rgba(0,0,0,0.1);
+        }
+        .k-pager-wrap
+        {
+            border-top: 0;
+        }
+        span.k-invalid-msg
+        {
+            position: absolute;
+            margin-left: 6px;
+        }
+
+        .k-add-button {
+            margin-bottom: 2em;
+        }
+
+        .k-textbox {
+          margin-bottom: 10px;
+        }
+
     </style>
+</div>
+
 
 </body>
-
 </html>
