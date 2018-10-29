@@ -1,4 +1,3 @@
-// models / data
 var items = new kendo.data.DataSource({
     schema:
     {
@@ -8,7 +7,7 @@ var items = new kendo.data.DataSource({
     {
         read:
         {
-            url: "/Kendo-UI-Web-Sushi-master/data/menu.json",
+            url: "/Kendo_UI_Example/data/items.json",
             dataType: "json"
         }
     }
@@ -38,16 +37,6 @@ var cart = kendo.observable({
 
         if (!found) {
             this.contents.push({ item: item, quantity: 1 });
-        }
-    },
-
-    remove: function (item) {
-        for (var i = 0; i < this.contents.length; i++) {
-            var current = this.contents[i];
-            if (current === item) {
-                this.contents.splice(i, 1);
-                break;
-            }
         }
     },
 
@@ -83,14 +72,6 @@ var layoutModel = kendo.observable({
 var cartPreviewModel = kendo.observable({
     cart: cart,
 
-    cartContentsClass: function () {
-        return this.cart.contentsCount() > 0 ? "active" : "empty";
-    },
-
-    removeFromCart: function (e) {
-        this.get("cart").remove(e.data);
-    },
-
     emptyCart: function () {
         cart.empty();
     },
@@ -105,7 +86,7 @@ var cartPreviewModel = kendo.observable({
 
     proceed: function (e) {
         this.get("cart").clear();
-        sushi.navigate("/");
+        kendo_example.navigate("/");
     }
 });
 
@@ -148,106 +129,33 @@ var viewModel = kendo.observable({
     }
 });
 
-var detailModel = kendo.observable({
-    imgUrl: function () {
-        return "/Kendo-UI-Web-Sushi-master/images/200/" + this.get("current").image
-    },
-
-    price: function () {
-        return kendo.format("{0:c}", this.get("current").Price);
-    },
-
-    addToCart: function (e) {
-        cart.add(this.get("current"));
-    },
-
-    setCurrent: function (itemID) {
-        debugger;
-        this.set("current", items.get(itemID));
-    },
-
-    previousHref: function () {
-        var id = this.get("current").Id - 1;
-        if (id === 0) {
-            id = items.data().length - 1;
-        }
-
-        return "#/menu/" + id;
-    },
-
-    nextHref: function () {
-        var id = this.get("current").Id + 1;
-
-        if (id === items.data().length) {
-            id = 1;
-        }
-
-        return "#/menu/" + id;
-    },
-
-    kCal: function () {
-        return kendo.toString(this.get("current").stats.energy / 4.184, "0.0000");
-    }
-});
-
 // Views and layouts
 var layout = new kendo.Layout("layout-template", { model: layoutModel });
-var cartPreview = new kendo.Layout("cart-preview-template", { model: cartPreviewModel });
 var index = new kendo.View("index-template", { model: indexModel });
 var checkout = new kendo.View("checkout-template", { model: cartPreviewModel });
-var detail = new kendo.View("detail-template", { model: detailModel });
 var search = new kendo.View("search-box-template", { model: viewModel });
 
 kendo.bind($("#search-box-template"), viewModel);
 
-var sushi = new kendo.Router({
+var kendo_example = new kendo.Router({
     init: function () {
-        console.log("router init")
         layout.render("#application");
     }
 });
 
-var viewingDetail = false;
-
 // Routing
-sushi.route("/", function () {
-    console.log("router root route")
+kendo_example.route("/", function () {
     viewingDetail = false;
     layout.showIn("#content", index);
     layout.showIn("#search-bar", search);
-    layout.showIn("#pre-content", cartPreview);
 });
 
-sushi.route("/checkout", function () {
+kendo_example.route("/checkout", function () {
     viewingDetail = false;
     layout.showIn("#content", checkout);
-    cartPreview.hide();
     search.hide();
 });
 
-sushi.route("/menu/:id", function (itemID) {
-    layout.showIn("#pre-content", cartPreview);
-    var transition = "",
-        current = detailModel.get("current");
-
-    if (viewingDetail && current) {
-        transition = current.Id < itemID ? "tileleft" : "tileright";
-    }
-
-    items.fetch(function (e) {
-        if (detailModel.get("current")) { // existing view, start transition, then update content. This is necessary for the correct view transition clone to be created.
-            layout.showIn("#content", detail, transition);
-            detailModel.setCurrent(itemID);
-        } else {
-            // update content first
-            detailModel.setCurrent(itemID);
-            layout.showIn("#content", detail, transition);
-        }
-    });
-
-    viewingDetail = true;
-});
-
 $(function () {
-    sushi.start();
+    kendo_example.start();
 });
